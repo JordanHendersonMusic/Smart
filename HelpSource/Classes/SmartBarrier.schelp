@@ -49,7 +49,11 @@ s.waitForBoot {
 
 	~pathsToRead = (Platform.resourceDir +/+ "sounds/a11wlk01.wav") ! 10; // replace with array of paths
 
-	~bp = SmartBarrier.fill( ~pathsToRead.collect( SmartBuffer.read(_))	)  // load all buffers
+	~bp = SmartBarrier(
+		~pathsToRead.collect({|p|
+			{ SmartBuffer.read(p) } // array of functions loading buffers
+		})
+	)
 	.then(_.normalize)                                 // normalize each one when it is done
 	.thenCleanup(_.get(44100 + 1000.rand), _.free)     // get a sample value, and free buffer
 	.reject( _ > 0 );                                  // reject samples greater than 0
