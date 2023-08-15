@@ -184,23 +184,15 @@ fork {
 
 (
 fork {
-	~b = SmartBarrier( 10.collect{|i|
-		{
-			3.rand.wait;
-			"init".postln;
-			i
-		}
-	})
+	~b = SmartBarrier.fill(10, {|i|
+		3.rand.wait;
+		("init" + i).postln;
+		i
+	} )
 	.then({|i| format("mul%", i).postln; i * 2 })
-	.reject({|r| "reject".postln; r > 10});
-
-	"pre await".postln;
-	~b.await.postln;
-	"post await".postln;
-
-
-
-
+	.reject({|r| ("reject" + (r/2)).postln; r > 10})
+	.await
+	.postln;
 }
 )
 
@@ -243,6 +235,7 @@ ArrayedCollection
 Exception
 
 Object
+Buffer
 
 
 
