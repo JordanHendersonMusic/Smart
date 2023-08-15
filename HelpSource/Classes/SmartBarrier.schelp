@@ -1,0 +1,82 @@
+CLASS:: SmartBarrier
+summary:: An array of SmartPromises with extras
+categories:: Libraries>Smart
+
+DESCRIPTION::
+An array of link::Classes/SmartPromise::s, but you await for all of them to finish and the pipeline is improved.
+Useful for having many voices play something in parallel or fetching many link::Classes/SmartBuffer::s at once.
+
+This is prefered over an array of promises as each action in the pipeline is done when the individual promise is complete, not when all of them are.
+
+CLASSMETHODS::
+
+method:: new
+argument:: funcs
+The array of functions, their return will fulfil the link::Classes/SmartPromise::s.
+
+METHOD:: fill
+argument:: n
+Number of files to evaluate the function.
+argument:: func
+The function to evaluate, their return will fulfil the link::Classes/SmartPromise::s.
+
+
+INSTANCEMETHODS::
+copymethod:: SmartAwaitableInterface, -await,
+copymethod:: SmartAwaitableInterface, -then
+copymethod:: SmartAwaitableInterface, -catch
+copymethod:: SmartAwaitableInterface, -doWith
+copymethod:: SmartAwaitableInterface, -thenCleanup
+
+method:: reject
+
+argument:: filter
+A link::Classes/Function:: returning a link::Classes/Boolean:: to reject certain values.
+
+method:: select
+inverse of reject.
+
+
+PRIVATE:: pimpl_addToActions, priv_awakeWaitingThread, priv_consumeActions, pimpl_awaitNoReturn
+
+
+examples::
+section:: Complex example
+Getting values from buffers using link::Classes/SmartBuffer::.
+code::
+(
+s.waitForBoot {
+
+	~pathsToRead = (Platform.resourceDir +/+ "sounds/a11wlk01.wav") ! 10; // replace with array of paths
+
+	~bp = SmartBarrier.fill( ~pathsToRead.collect( SmartBuffer.read(_))	)  // load all buffers
+	.then(_.normalize)                                 // normalize each one when it is done
+	.thenCleanup(_.get(44100 + 1000.rand), _.free)     // get a sample value, and free buffer
+	.reject( _ > 0 );                                  // reject samples greater than 0
+
+	// ... do some other stuff not involving the sample values
+
+	~bs = ~bp.await.postln;  // await
+}
+)
+::
+
+section:: Sequential execution
+As mentioned, the 'then' and 'catch' actions do not require all the promises to be fulfilled before moving one.
+
+This code will be evaluated in a different order each time.
+code::
+(
+fork {
+	~b = SmartBarrier.fill(10, {|i|
+		3.rand.wait;
+		("init" + i).postln;
+		i
+	} )
+	.then({|i| format("mul%", i).postln; i * 2 })
+	.reject({|r| ("reject" + (r/2)).postln; r > 10})
+	.await
+	.postln;
+}
+)
+::

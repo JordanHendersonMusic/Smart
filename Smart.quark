@@ -1,0 +1,9 @@
+(
+          \name: "Smart",
+       \summary: "An async library for Supercollider - SmartPromise, SmartBarrier, SmartBuffer",
+        \author: "Jordan Henderson",
+     \copyright: "Jordan Henderson 2023",
+       \license: "GPL",
+       \version: "0.1",
+        \url: "https://github.com/JordanHendersonMusic/Barrier",
+)

@@ -1,0 +1,70 @@
+CLASS:: SmartAwaitableInterface
+summary:: The basic awaitable interface for Smart
+categories:: Libraries>Smart
+
+DESCRIPTION::
+This is used internally and won't be helpful - see link::Classes/SmartPromise::.
+
+
+
+
+CLASSMETHODS::
+
+PRIVATE:: awaitIfNeeded, getSafeTimeoutBeat
+
+
+
+
+
+
+
+
+INSTANCEMETHODS::
+
+METHOD:: await
+Gets the value, fill block the current thread if not complete.
+This function might need to be called inside a fork.
+
+argument:: timeoutbeats
+An optional link::Classes/SimpleNumber:: of how many beats to wait before 'timingout'
+
+
+METHOD:: then
+
+argument:: action
+A link::Classes/Function:: that will be added to the pipeline.
+It is given the promise's value as the first argument - no need to call 'await' on it.
+The return becomes the new value of the promise, it this way, it is similar to 'collect'.
+
+METHOD:: catch
+code::
+fork{
+	SmartPromise.fulfilWith({ Error("got an error").throw })
+	.then({ "this is never executed as in thrown state" })
+	// to catch all, pass in Exception
+	.catch(Error, {|er| "got an error" })
+	.await.postln // returns "got an error"
+}
+::
+argument:: exceptionTypesToCatch
+
+A link::Classes/Class:: or an link::Classes/Array:: of link::Classes/Class::es. Each class must be of type link::Classes/Exception::. This does not work with any class.
+
+argument:: action
+
+A link::Classes/Function:: a function that will be called if an exception was previously thrown. It is passed the thrown exception as the first argument.
+
+
+METHOD:: doWith
+argument:: action
+A link::Classes/Function::. Like then, but always returns the promise's existing value.
+
+
+METHOD:: thenCleanup
+argument:: then
+A link::Classes/Function::. Same as then, the returned value is the promise's new value.
+argument:: cleanup
+A link::Classes/Function::. Run after the 'then' function, useful to delete the resource or perform some other cleanup action.
+
+
+PRIVATE:: pimpl_addToActions, priv_awakeWaitingThread, priv_consumeActions, pimpl_awaitNoReturn, copy, shallowCopy, deepCopy

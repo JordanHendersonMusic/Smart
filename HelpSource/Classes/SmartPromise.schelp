@@ -1,0 +1,94 @@
+CLASS:: SmartPromise
+summary:: A promise for async programming
+categories:: Libraries>Smart
+
+DESCRIPTION::
+A promise for async programming. Used throughout Smart do represent values that are not yet ready, but will be in the future - when ever a value is returned from the server, it should be wrapped in a SmartPromise.
+
+SmartPromises also have a function pipeline that you can add to. These will be executed sometime before await is called. You can also add catches to optionally deal with exceptions in the pipeline.
+
+The main use case is as follows...
+
+code::
+~promise = SmartPromise.fulfilWith({
+	2.wait; // something async
+	\returnedValue
+});
+
+// ...do some other stuff...
+
+
+// will block this thread if not completed, otherwise returns:
+//    \returnedValue
+
+~result = ~promise.await;
+::
+
+Promises allows functions to be added to the pipeline, they will be evaluated sometime before .await, they never block the current thread.
+
+code::
+~promise = SmartPromise.newFulfilled(2)
+.then( _ * 3)
+.then( _ + 10);
+
+// ...do some other stuff...
+
+~result = ~promise.await; // returns (2 * 3) + 10 = 16
+::
+
+
+CLASSMETHODS::
+
+METHOD:: new
+Creates a blank promise to be fulfilled later.
+
+code::
+fork{
+	~promise = SmartPromise();
+	fork { 1.wait; ~promise.fulfil(10) };
+	~promise.await.postln;
+}
+::
+
+METHOD:: fulfilWith
+
+argument:: func
+A link::Classes/Function:: that will run in a different thread and fulfil the promise with its return.
+
+METHOD:: newFulfilled
+
+argument:: value
+
+Create an already fulfilled promise. Shouldn't be used in many situations.
+
+PRIVATE:: priv_new
+
+
+
+
+INSTANCEMETHODS::
+
+METHOD:: fulfil
+
+argument:: value
+Fulfills the promise by providing a value. This will also start executing the pipeline in another routine if needed.
+
+copymethod:: SmartAwaitableInterface, -await,
+copymethod:: SmartAwaitableInterface, -then
+copymethod:: SmartAwaitableInterface, -catch
+copymethod:: SmartAwaitableInterface, -doWith
+copymethod:: SmartAwaitableInterface, -thenCleanup
+
+PRIVATE:: pimpl_addToActions, priv_awakeWaitingThread, priv_consumeActions, pimpl_awaitNoReturn
+
+
+
+
+
+
+
+
+
+
+
+
